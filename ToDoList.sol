@@ -1,27 +1,36 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.17;
 
-contract TodoList {
-    struct Task {
-        uint256 id;
-        string content;
+contract todo_list{
+    struct TodoItem{
+        string task;
         bool completed;
     }
 
-    mapping(uint256 => Task) public tasks;
-    uint256 public taskCount;
+    mapping (uint256 => TodoItem) public List;
+    uint256 public count = 0;
+    address public owner;
+    event TaskCompleted(uint256 indexed id);
 
-    event TaskCreated(uint256 id, string content, bool completed);
-
-    function createTask(string memory _content) public {
-        taskCount++;
-        tasks[taskCount] = Task(taskCount, _content, false);
-        emit TaskCreated(taskCount, _content, false);
+    constructor (){
+        owner = msg.sender;
     }
 
-    function toggleCompleted(uint256 _id) public {
-        Task memory _task = tasks[_id];
-        _task.completed = !_task.completed;
-        tasks[_id] = _task;
+    function addTask(string calldata task) onlyOwner public {
+        TodoItem memory item = TodoItem({ task: task, completed: false});
+        List[count] = item;
+        count++;
+    }
+
+    function completeTask(uint256 id) onlyOwner public {
+        if (!List[id].completed){
+            List[id].completed = true;
+            emit TaskCompleted(id);
+        }
+    }
+
+    modifier onlyOwner() {
+        require(owner == msg.sender, "Only Owner can call this");
+        _;
     }
 }
